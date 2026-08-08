@@ -14,7 +14,10 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**") // Apply to all API endpoints
-                        .allowedOrigins("http://localhost:5173") // React Vite Port
+                         .allowedOrigins(
+                                "http://localhost:5173",
+                                "https://mini-cms-mu.vercel.app"
+                        ) // React Vite Port
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
