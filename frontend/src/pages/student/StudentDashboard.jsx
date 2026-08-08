@@ -228,6 +228,6 @@ const StudentDashboard = () => {
 
 // Extra icon mapping for safety
 const GraduationCap = ({size, className}) => <Users size={size} className={className} />;
-const ShieldCheck = ({size, className}) => <CheckCircle size={size} className={className} />;
+const CustomShieldCheck  = ({size, className}) => <CheckCircle size={size} className={className} />;
 
 export default StudentDashboard;
