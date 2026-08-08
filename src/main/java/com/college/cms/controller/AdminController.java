@@ -10,7 +10,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://mini-cms-mu.vercel.app"
+})
 public class AdminController {
 
     @Autowired private AdminService adminService;
