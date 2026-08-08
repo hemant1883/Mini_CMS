@@ -40,35 +40,25 @@ function App() {
             <Route path="/signup" element={<Signup />} />
 
             {/* Student Routes */}
-            <Route path="/student" element={
-              <PrivateRoute role="STUDENT"><StudentDashboard /></PrivateRoute>
-            } />
-            <Route path="/student/seating" element={
-              <PrivateRoute role="STUDENT"><ExamSeating /></PrivateRoute>
-            } />
-
-            {/* Placeholder for other roles */}
-            <Route path="/faculty" element={<PrivateRoute role="FACULTY"><h1>Faculty Dash</h1></PrivateRoute>} />
-            <Route path="/admin" element={<PrivateRoute role="ADMIN"><h1>Admin Dash</h1></PrivateRoute>} />
-
-            <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/student" element={<PrivateRoute role="STUDENT"><StudentDashboard /></PrivateRoute>} />
             <Route path="/student/seating" element={<PrivateRoute role="STUDENT"><ExamSeating /></PrivateRoute>} />
-
-            <Route path="/faculty" element={<PrivateRoute role="FACULTY"><FacultyDashboard /></PrivateRoute>} />
-            <Route path="/admin/timetable" element={<PrivateRoute role="ADMIN"><TimetableManagement /></PrivateRoute>} />
-            <Route path="/admin" element={<PrivateRoute role="ADMIN"><AdminDashboard /></PrivateRoute>} />
-            <Route path="/admin/students" element={<PrivateRoute role="ADMIN"><StudentManagement /></PrivateRoute>} />
-
-
-            <Route path="/student/faculty" element={<PrivateRoute role="STUDENT"><FacultyDirectory /></PrivateRoute>} /> {/* ADD THIS */}
+            <Route path="/student/faculty" element={<PrivateRoute role="STUDENT"><FacultyDirectory /></PrivateRoute>} />
             <Route path="/student/profile" element={<PrivateRoute role="STUDENT"><Profile /></PrivateRoute>} />
 
-            <Route path="/admin/profile" element={<PrivateRoute role="ADMIN"><Profile /></PrivateRoute>} />
-
+            {/* Faculty Routes */}
+            <Route path="/faculty" element={<PrivateRoute role="FACULTY"><FacultyDashboard /></PrivateRoute>} />
             <Route path="/faculty/profile" element={<PrivateRoute role="FACULTY"><Profile /></PrivateRoute>} />
             <Route path="/faculty/schedule" element={<PrivateRoute role="FACULTY"><FacultyWeeklySchedule /></PrivateRoute>} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<PrivateRoute role="ADMIN"><AdminDashboard /></PrivateRoute>} />
+            <Route path="/admin/students" element={<PrivateRoute role="ADMIN"><StudentManagement /></PrivateRoute>} />
+            <Route path="/admin/timetable" element={<PrivateRoute role="ADMIN"><TimetableManagement /></PrivateRoute>} />
             <Route path="/admin/seating" element={<PrivateRoute role="ADMIN"><ExamSeatingManagement /></PrivateRoute>} />
+            <Route path="/admin/profile" element={<PrivateRoute role="ADMIN"><Profile /></PrivateRoute>} />
+
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
