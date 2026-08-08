@@ -12,7 +12,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/student")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://mini-cms-mu.vercel.app"
+})
 public class StudentController {
 
     @Autowired private TimetableService timetableService;
