@@ -14,7 +14,7 @@ const StudentManagement = () => {
         name: '',
         email: '',
         rollNumber: '',
-        password: 'student123',
+        password: '',
         branch: '',
         semester: '',
         course: 'B.Tech',
