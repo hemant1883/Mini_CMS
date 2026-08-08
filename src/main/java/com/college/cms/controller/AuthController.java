@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // Allow React Frontend
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://mini-cms-mu.vercel.app"
+})
 public class AuthController {
 
     @Autowired
