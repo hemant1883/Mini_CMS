@@ -10,7 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/faculty")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "https://mini-cms-mu.vercel.app"
+})
 public class FacultyController {
 
     @Autowired private FacultyService facultyService;
