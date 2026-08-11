@@ -118,8 +118,8 @@ const AdminDashboard = () => {
             branch: user.branch || '',
             course: user.course || 'B.Tech',
             semester: user.semester || 1,
-            department: user.department || '',
-            designation: user.designation || '',
+            department: user.department || 'Computer Science',
+            designation: user.designation || 'Assistant Professor',
             phoneNumber: user.phoneNumber || '',
             status: user.status || 'FREE',
             password: '' // empty means no password change
@@ -132,12 +132,12 @@ const AdminDashboard = () => {
         setSaveLoading(true);
         try {
             const res = await api.put(`/admin/users/${editingUser.id}`, editForm);
-            const updatedUser = res.data.user || editForm;
+            const updatedUser = res.data.user || { ...editingUser, ...editForm };
 
             showToast(`Profile updated successfully for ${updatedUser.name}`);
 
             // Update user inside userList
-            setUserList(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updatedUser } : u));
+            setUserList(prev => prev.map(u => (u.id == editingUser.id ? { ...u, ...updatedUser } : u)));
 
             // Refetch dashboard stats
             fetchStats();
@@ -182,14 +182,17 @@ const AdminDashboard = () => {
     );
 
     const filteredUserList = userList.filter(u => {
-        const query = listSearch.toLowerCase();
+        if (activeListRole && u.role && u.role !== activeListRole) return false;
+        const query = listSearch.trim().toLowerCase();
+        if (!query) return true;
         return (
             (u.name && u.name.toLowerCase().includes(query)) ||
             (u.email && u.email.toLowerCase().includes(query)) ||
-            (u.rollNumber && u.rollNumber.toLowerCase().includes(query)) ||
-            (u.employeeId && u.employeeId.toLowerCase().includes(query)) ||
+            (u.rollNumber && String(u.rollNumber).toLowerCase().includes(query)) ||
+            (u.employeeId && String(u.employeeId).toLowerCase().includes(query)) ||
             (u.branch && u.branch.toLowerCase().includes(query)) ||
-            (u.department && u.department.toLowerCase().includes(query))
+            (u.department && u.department.toLowerCase().includes(query)) ||
+            (u.course && u.course.toLowerCase().includes(query))
         );
     });
 
