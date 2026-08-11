@@ -31,8 +31,8 @@ const Login = () => {
                 <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">College Portal</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="email" required className="w-full mt-1 p-2 border rounded-md"
+                        <label className="block text-sm font-medium text-gray-700">Email, Roll Number, or Employee ID</label>
+                        <input type="text" required placeholder="e.g. student@college.edu or CS2024001" className="w-full mt-1 p-2 border rounded-md"
                                onChange={(e) => setEmail(e.target.value)} />
                     </div>
                     <div>
