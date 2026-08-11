@@ -14,7 +14,7 @@ const StudentManagement = () => {
         name: '',
         email: '',
         rollNumber: '',
-        password: '',
+        password: 'student123',
         branch: '',
         semester: '',
         course: 'B.Tech',
@@ -45,8 +45,9 @@ const StudentManagement = () => {
     const handleAddStudent = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/admin/students', student);
-            showToast(`Student ${student.name} created successfully!`);
+            const res = await api.post('/admin/students', student);
+            const created = res.data;
+            showToast(`Student ${created.name || student.name} created! Login Email: ${created.email} / Roll: ${created.rollNumber} | Password: ${created.password || 'student123'}`);
             setStudent({ name: '', email: '', rollNumber: '', password: 'student123', branch: '', semester: '', course: 'B.Tech', phoneNumber: '' });
             fetchStudents();
         } catch (err) {
@@ -188,6 +189,13 @@ const StudentManagement = () => {
                                 <input className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                                        placeholder="+1 555-0101" value={student.phoneNumber}
                                        onChange={e => setStudent({...student, phoneNumber: e.target.value})} />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Account Password</label>
+                                <input type="password" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                       placeholder="Default: student123" value={student.password}
+                                       onChange={e => setStudent({...student, password: e.target.value})} />
                             </div>
                         </div>
 
