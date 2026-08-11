@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { UserPlus, Users, Edit3, Trash2, Search, Save, X, GraduationCap, CheckCircle } from 'lucide-react';
-import { BRANCHES } from '../../api/constants';
 
 const StudentManagement = () => {
     const [studentList, setStudentList] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [toastMessage, setToastMessage] = useState(null);
@@ -28,7 +28,17 @@ const StudentManagement = () => {
 
     useEffect(() => {
         fetchStudents();
+        fetchDepartments();
     }, []);
+
+    const fetchDepartments = async () => {
+        try {
+            const res = await api.get('/departments');
+            setDepartments(res.data || []);
+        } catch (err) {
+            console.error('Failed to fetch departments:', err);
+        }
+    };
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -165,16 +175,30 @@ const StudentManagement = () => {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Branch</label>
-                                <select
-                                    required
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                    value={student.branch}
-                                    onChange={e => setStudent({...student, branch: e.target.value})}
-                                >
-                                    <option value="">Select Branch</option>
-                                    {BRANCHES.map(b => <option key={b.id} value={b.id}>{b.name} ({b.id})</option>)}
-                                </select>
+                                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Branch / Department</label>
+                                {departments.length > 0 ? (
+                                    <select
+                                        required
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium"
+                                        value={student.branch}
+                                        onChange={e => setStudent({...student, branch: e.target.value})}
+                                    >
+                                        <option value="">Select Branch / Department</option>
+                                        {departments.map(d => (
+                                            <option key={d.id || d.code} value={d.code}>
+                                                {d.name} ({d.code})
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <input 
+                                        required
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                        placeholder="e.g. CS" 
+                                        value={student.branch}
+                                        onChange={e => setStudent({...student, branch: e.target.value})} 
+                                    />
+                                )}
                             </div>
 
                             <div className="space-y-1.5">
