@@ -67,6 +67,16 @@ const AdminDashboard = () => {
     const [saveLoading, setSaveLoading] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
 
+    // Department & Course Management state
+    const [deptModalOpen, setDeptModalOpen] = useState(false);
+    const [editingDept, setEditingDept] = useState(null);
+    const [deptForm, setDeptForm] = useState({ code: '', name: '', hod: '', description: '' });
+
+    const [courseModalOpen, setCourseModalOpen] = useState(false);
+    const [courseDept, setCourseDept] = useState(null);
+    const [editingCourse, setEditingCourse] = useState(null);
+    const [courseForm, setCourseForm] = useState({ code: '', name: '', duration: '4 Years', description: '' });
+
     useEffect(() => {
         fetchStats();
     }, []);
@@ -173,6 +183,107 @@ const AdminDashboard = () => {
     const showToast = (msg) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(null), 3500);
+    };
+
+    // Department CRUD Handlers
+    const openAddDeptModal = () => {
+        setEditingDept(null);
+        setDeptForm({ code: '', name: '', hod: '', description: '' });
+        setDeptModalOpen(true);
+    };
+
+    const openEditDeptModal = (dept) => {
+        setEditingDept(dept);
+        setDeptForm({
+            code: dept.code || '',
+            name: dept.name || '',
+            hod: dept.hod || '',
+            description: dept.description || ''
+        });
+        setDeptModalOpen(true);
+    };
+
+    const handleSaveDepartment = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingDept) {
+                await api.put(`/admin/departments/${editingDept.id}`, deptForm);
+                showToast(`Department "${deptForm.name}" updated successfully!`);
+            } else {
+                await api.post('/admin/departments', deptForm);
+                showToast(`Department "${deptForm.name}" created successfully!`);
+            }
+            setDeptModalOpen(false);
+            fetchStats();
+        } catch (err) {
+            console.error('Error saving department:', err);
+            alert(err.response?.data?.message || 'Failed to save department');
+        }
+    };
+
+    const handleDeleteDepartment = async (deptId, deptName) => {
+        if (!window.confirm(`Are you sure you want to delete department "${deptName}"? All associated courses will also be removed.`)) {
+            return;
+        }
+        try {
+            await api.delete(`/admin/departments/${deptId}`);
+            showToast(`Department "${deptName}" deleted successfully`);
+            fetchStats();
+        } catch (err) {
+            console.error('Error deleting department:', err);
+            alert('Failed to delete department');
+        }
+    };
+
+    // Course CRUD Handlers
+    const openAddCourseModal = (dept) => {
+        setCourseDept(dept);
+        setEditingCourse(null);
+        setCourseForm({ code: '', name: '', duration: '4 Years', description: '' });
+        setCourseModalOpen(true);
+    };
+
+    const openEditCourseModal = (dept, course) => {
+        setCourseDept(dept);
+        setEditingCourse(course);
+        setCourseForm({
+            code: course.code || '',
+            name: course.name || '',
+            duration: course.duration || '4 Years',
+            description: course.description || ''
+        });
+        setCourseModalOpen(true);
+    };
+
+    const handleSaveCourse = async (e) => {
+        e.preventDefault();
+        if (!courseDept) return;
+        try {
+            if (editingCourse) {
+                await api.put(`/admin/departments/${courseDept.id}/courses/${editingCourse.id}`, courseForm);
+                showToast(`Course "${courseForm.name}" updated in ${courseDept.name}!`);
+            } else {
+                await api.post(`/admin/departments/${courseDept.id}/courses`, courseForm);
+                showToast(`Course "${courseForm.name}" added to ${courseDept.name}!`);
+            }
+            setCourseModalOpen(false);
+            fetchStats();
+        } catch (err) {
+            console.error('Error saving course:', err);
+            alert(err.response?.data?.message || 'Failed to save course');
+        }
+    };
+
+    const handleDeleteCourse = async (deptId, courseId, courseName) => {
+        if (!window.confirm(`Are you sure you want to delete course "${courseName}"?`)) return;
+        try {
+            await api.delete(`/admin/departments/${deptId}/courses/${courseId}`);
+            showToast(`Course "${courseName}" removed successfully`);
+            fetchStats();
+        } catch (err) {
+            console.error('Error deleting course:', err);
+            alert('Failed to delete course');
+        }
     };
 
     const filteredDepartments = (stats.departments || []).filter(dept => 
@@ -308,19 +419,27 @@ const AdminDashboard = () => {
                             <h2 className="text-2xl font-bold text-gray-900">Total Departments Section</h2>
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                            Overview of academic departments. Click <span className="font-semibold text-gray-700">"View Department Roster"</span> on any card to edit specific members.
+                            Overview of academic departments & courses. Create new departments or add courses inside them.
                         </p>
                     </div>
 
-                    <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Search departments..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
-                        />
+                    <div className="flex items-center gap-3">
+                        <div className="relative w-full sm:w-64">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input 
+                                type="text" 
+                                placeholder="Search departments..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                            />
+                        </div>
+                        <button 
+                            onClick={openAddDeptModal}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition shadow-md flex items-center gap-1.5 shrink-0"
+                        >
+                            <Plus size={16} /> Add Department
+                        </button>
                     </div>
                 </div>
 
@@ -333,6 +452,7 @@ const AdminDashboard = () => {
                     <div className="py-12 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
                         <Building2 size={40} className="mx-auto text-gray-300 mb-2" />
                         <p className="text-gray-600 font-medium">No departments found matching your search</p>
+                        <p className="text-xs text-gray-400 mt-1">Click "Add Department" above to create your first department!</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -340,7 +460,7 @@ const AdminDashboard = () => {
                             const DeptIcon = departmentIcons[dept.code] || Building2;
                             return (
                                 <div 
-                                    key={dept.code}
+                                    key={dept.id || dept.code}
                                     className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
                                 >
                                     <div>
@@ -358,6 +478,24 @@ const AdminDashboard = () => {
                                                     </h3>
                                                 </div>
                                             </div>
+
+                                            {/* Dept Action buttons */}
+                                            <div className="flex items-center gap-1">
+                                                <button 
+                                                    onClick={() => openEditDeptModal(dept)}
+                                                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                                    title="Edit Department"
+                                                >
+                                                    <Edit3 size={15} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                                                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                                                    title="Delete Department"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <p className="text-xs text-gray-500 mb-4 line-clamp-2">
@@ -365,7 +503,7 @@ const AdminDashboard = () => {
                                         </p>
 
                                         {dept.hod && (
-                                            <div className="mb-5 p-2.5 bg-gray-50 rounded-xl flex items-center gap-2 text-xs text-gray-700 border border-gray-100">
+                                            <div className="mb-4 p-2.5 bg-gray-50 rounded-xl flex items-center gap-2 text-xs text-gray-700 border border-gray-100">
                                                 <UserCheck size={16} className="text-indigo-500 shrink-0" />
                                                 <span className="truncate">
                                                     <strong className="font-semibold">HoD:</strong> {dept.hod}
@@ -373,8 +511,53 @@ const AdminDashboard = () => {
                                             </div>
                                         )}
 
+                                        {/* Courses offered in this department */}
+                                        <div className="mb-4 p-3 bg-indigo-50/40 rounded-xl border border-indigo-100/60">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1">
+                                                    <BookOpen size={13} className="text-indigo-600" />
+                                                    Courses ({dept.courses ? dept.courses.length : 0})
+                                                </span>
+                                                <button 
+                                                    onClick={() => openAddCourseModal(dept)}
+                                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5"
+                                                >
+                                                    <Plus size={13} /> Add Course
+                                                </button>
+                                            </div>
+                                            
+                                            {dept.courses && dept.courses.length > 0 ? (
+                                                <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1">
+                                                    {dept.courses.map((course) => (
+                                                        <div key={course.id || course.code} className="flex items-center justify-between p-1.5 bg-white rounded-lg text-xs border border-indigo-100/80">
+                                                            <div>
+                                                                <span className="font-bold text-gray-800">{course.name}</span>
+                                                                <span className="text-[10px] text-gray-400 ml-1.5">({course.duration})</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                <button 
+                                                                    onClick={() => openEditCourseModal(dept, course)}
+                                                                    className="p-1 text-gray-400 hover:text-indigo-600 transition"
+                                                                >
+                                                                    <Edit3 size={12} />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleDeleteCourse(dept.id, course.id, course.name)}
+                                                                    className="p-1 text-gray-400 hover:text-rose-600 transition"
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-[11px] text-gray-400 italic">No courses added yet. Click "+ Add Course" to add one.</p>
+                                            )}
+                                        </div>
+
                                         {/* Stat Pills for Total Faculties and Students */}
-                                        <div className="grid grid-cols-2 gap-3 mb-5">
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
                                             <div 
                                                 onClick={() => openListModal('FACULTY')}
                                                 className="p-3 bg-purple-50/70 hover:bg-purple-100/80 cursor-pointer transition border border-purple-100/60 rounded-xl text-center"
@@ -988,6 +1171,181 @@ const AdminDashboard = () => {
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* =========================================
+                MODAL 4: ADD/EDIT DEPARTMENT MODAL
+               ========================================= */}
+            {deptModalOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 bg-indigo-600 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Building2 size={24} />
+                                <div>
+                                    <h3 className="text-lg font-bold">{editingDept ? 'Edit Department' : 'Create New Department'}</h3>
+                                    <p className="text-xs text-indigo-200">Specify details for the academic department.</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setDeptModalOpen(false)} className="text-white/80 hover:text-white">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveDepartment} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Department Name *</label>
+                                <input 
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Computer Science & Engineering"
+                                    value={deptForm.name}
+                                    onChange={(e) => setDeptForm({ ...deptForm, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Department Code / Abbreviation *</label>
+                                <input 
+                                    type="text"
+                                    required
+                                    placeholder="e.g. CSE or IT"
+                                    value={deptForm.code}
+                                    onChange={(e) => setDeptForm({ ...deptForm, code: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 uppercase"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Head of Department (HoD)</label>
+                                <input 
+                                    type="text"
+                                    placeholder="e.g. Dr. Sarah Smith"
+                                    value={deptForm.hod}
+                                    onChange={(e) => setDeptForm({ ...deptForm, hod: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
+                                <textarea 
+                                    rows="3"
+                                    placeholder="Brief description of the department..."
+                                    value={deptForm.description}
+                                    onChange={(e) => setDeptForm({ ...deptForm, description: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+
+                            <div className="pt-3 flex justify-end gap-2 border-t border-gray-100">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setDeptModalOpen(false)}
+                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                                >
+                                    <Save size={15} /> Save Department
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* =========================================
+                MODAL 5: ADD/EDIT COURSE MODAL
+               ========================================= */}
+            {courseModalOpen && courseDept && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 bg-indigo-600 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <BookOpen size={24} />
+                                <div>
+                                    <h3 className="text-lg font-bold">{editingCourse ? 'Edit Course' : 'Add New Course'}</h3>
+                                    <p className="text-xs text-indigo-200">Department: {courseDept.name}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setCourseModalOpen(false)} className="text-white/80 hover:text-white">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveCourse} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Course Name *</label>
+                                <input 
+                                    type="text"
+                                    required
+                                    placeholder="e.g. B.Tech Computer Science & Engineering"
+                                    value={courseForm.name}
+                                    onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Course Code</label>
+                                <input 
+                                    type="text"
+                                    placeholder="e.g. BTCSE"
+                                    value={courseForm.code}
+                                    onChange={(e) => setCourseForm({ ...courseForm, code: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 uppercase"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Duration</label>
+                                <select 
+                                    value={courseForm.duration}
+                                    onChange={(e) => setCourseForm({ ...courseForm, duration: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                >
+                                    <option value="4 Years">4 Years (8 Semesters)</option>
+                                    <option value="3 Years">3 Years (6 Semesters)</option>
+                                    <option value="2 Years">2 Years (4 Semesters)</option>
+                                    <option value="1 Year">1 Year (2 Semesters)</option>
+                                    <option value="6 Months">6 Months</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
+                                <textarea 
+                                    rows="2"
+                                    placeholder="Course details..."
+                                    value={courseForm.description}
+                                    onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+
+                            <div className="pt-3 flex justify-end gap-2 border-t border-gray-100">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setCourseModalOpen(false)}
+                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                                >
+                                    <Save size={15} /> Save Course
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
