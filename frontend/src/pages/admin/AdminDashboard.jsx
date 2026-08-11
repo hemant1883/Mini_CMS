@@ -123,12 +123,13 @@ const AdminDashboard = () => {
         setEditForm({
             name: user.name || '',
             email: user.email || '',
+            role: user.role || 'STUDENT',
             rollNumber: user.rollNumber || '',
             employeeId: user.employeeId || '',
             branch: user.branch || '',
             course: user.course || 'B.Tech',
             semester: user.semester || 1,
-            department: user.department || 'Computer Science',
+            department: user.department || '',
             designation: user.designation || 'Assistant Professor',
             phoneNumber: user.phoneNumber || '',
             status: user.status || 'FREE',
@@ -293,7 +294,7 @@ const AdminDashboard = () => {
     );
 
     const filteredUserList = userList.filter(u => {
-        if (activeListRole && u.role && u.role !== activeListRole) return false;
+        if (activeListRole && u.role && u.role.toUpperCase() !== activeListRole.toUpperCase()) return false;
         const query = listSearch.trim().toLowerCase();
         if (!query) return true;
         return (
@@ -829,6 +830,22 @@ const AdminDashboard = () => {
 
                         {/* Edit Form Body */}
                         <form onSubmit={handleSaveUser} className="p-6 overflow-y-auto space-y-4 flex-1">
+                            {/* Account Role Selector */}
+                            <div>
+                                <label className="block text-xs font-bold text-indigo-900 uppercase tracking-wider mb-1">
+                                    Account Role / Access Level
+                                </label>
+                                <select 
+                                    value={editForm.role}
+                                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                                    className="w-full px-3 py-2 bg-indigo-50/60 border border-indigo-200 rounded-xl text-sm font-bold text-indigo-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    <option value="STUDENT">Student Role</option>
+                                    <option value="FACULTY">Faculty Role</option>
+                                    <option value="ADMIN">System Administrator Role</option>
+                                </select>
+                            </div>
+
                             {/* Full Name */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
@@ -864,7 +881,7 @@ const AdminDashboard = () => {
                             </div>
 
                             {/* STUDENT Specific Fields */}
-                            {editingUser.role === 'STUDENT' && (
+                            {(editForm.role === 'STUDENT' || editingUser.role === 'STUDENT') && (
                                 <>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
@@ -902,8 +919,9 @@ const AdminDashboard = () => {
                                                 onChange={(e) => setEditForm({ ...editForm, branch: e.target.value })}
                                                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                             >
-                                                {BRANCHES.map(b => (
-                                                    <option key={b.id} value={b.id}>{b.name} ({b.id})</option>
+                                                <option value="">Select Department / Branch</option>
+                                                {(stats.departments || []).map(d => (
+                                                    <option key={d.id || d.code} value={d.code}>{d.name} ({d.code})</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -925,7 +943,7 @@ const AdminDashboard = () => {
                             )}
 
                             {/* FACULTY Specific Fields */}
-                            {editingUser.role === 'FACULTY' && (
+                            {(editForm.role === 'FACULTY' || editingUser.role === 'FACULTY') && (
                                 <>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
@@ -949,8 +967,9 @@ const AdminDashboard = () => {
                                                 onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
                                                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                             >
-                                                {DEPARTMENTS.map(d => (
-                                                    <option key={d} value={d}>{d}</option>
+                                                <option value="">Select Department</option>
+                                                {(stats.departments || []).map(d => (
+                                                    <option key={d.id || d.code} value={d.name}>{d.name} ({d.code})</option>
                                                 ))}
                                             </select>
                                         </div>
